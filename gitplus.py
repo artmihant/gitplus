@@ -101,7 +101,7 @@ if __name__ == '__main__':
         with open(VERSION_FILE, 'w') as version_file:
             version_file.write(version_str)
         
-        repo.git.add(VERSION_FILE) 
+        repo.git.add(VERSION_FILE)  
 
         # Формируем сообщение коммита с датой и временем
         current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
