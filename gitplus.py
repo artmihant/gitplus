@@ -22,7 +22,6 @@ def get_current_version():
             return f.read().strip()
     return '0.0.0'
     
-
 def save_version(version_str):
     with open(VERSION_FILE, 'w') as f:
         f.write(version_str)
