@@ -210,5 +210,5 @@ if __name__ == '__main__':
         
         commit_message = msg_body
 
-    print(f'Commit Message:\n{commit_message}')
+    print(commit_message)
     repo.git.commit(m=commit_message)
