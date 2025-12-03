@@ -43,7 +43,7 @@ def parse_changelog_scenario(changelog_path):
     """
     Пытается выполнить сценарий (b).
     Возвращает кортеж (version, commit_message, new_file_content) если успешно.
-    Возвращает None, если сценарий (b) невозможен (нет файла, нет [actual], неверный формат).
+    Возвращает None, если сценарий (b) невозможен (нет файла, нет [Unreleased], неверный формат).
     """
     if not os.path.exists(changelog_path):
         return None
@@ -51,15 +51,15 @@ def parse_changelog_scenario(changelog_path):
     with open(changelog_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # Ищем заголовок с [actual].
-    # Ожидаемый формат заголовка из примера: ## 1.2.3 - [2025-02-10 14:50:46] [actual]
-    # Ожидаемый формат из описания: ## 1.2.3 [2025-02-10 14:50:46]: message [actual]
-    # Будем искать ## ... [actual] и парсить версию.
+    # Ищем заголовок с [Unreleased].
+    # Ожидаемый формат заголовка из примера: ## 1.2.3 - [2025-02-10 14:50:46] [Unreleased]
+    # Ожидаемый формат из описания: ## 1.2.3 [2025-02-10 14:50:46]: message [Unreleased]
+    # Будем искать ## ... [Unreleased] и парсить версию.
     
-    # Regex ищем строку, начинающуюся с ##, содержащую [actual]
-    # Группируем всё до [actual] чтобы вытащить версию
+    # Regex ищем строку, начинающуюся с ##, содержащую [Unreleased]
+    # Группируем всё до [Unreleased] чтобы вытащить версию
     # re.MULTILINE нужен для ^
-    match = re.search(r'^##\s+(.*?)\s+\[actual\]', content, re.MULTILINE)
+    match = re.search(r'^##\s+(.*?)\s+\[Unreleased\]', content, re.MULTILINE)
     
     if not match:
         return None
@@ -101,11 +101,15 @@ def parse_changelog_scenario(changelog_path):
             
     commit_message = '\n'.join(cleaned_lines).strip()
     
-    # Убираем [actual] из исходного контента
-    # Заменяем первое вхождение найденной строки заголовка на неё же, но без [actual]
-    # Но нужно быть аккуратным с пробелами перед [actual]
-    new_header_line = full_header_line.replace('[actual]', '').rstrip()
+    # Убираем [Unreleased] из исходного контента
+    # Заменяем первое вхождение найденной строки заголовка на неё же, но без [Unreleased]
+    # Но нужно быть аккуратным с пробелами перед [Unreleased]
+    new_header_line = full_header_line.replace('[Unreleased]', '').rstrip()
     new_content = content.replace(full_header_line, new_header_line, 1)
+
+    # Добавляем заголовок (без [Unreleased]) как первую строку сообщения
+    header_for_msg = new_header_line.lstrip('#').strip()
+    commit_message = f"{header_for_msg}\n\n{commit_message}"
 
     return version, commit_message, new_content
 
@@ -131,7 +135,7 @@ if __name__ == '__main__':
     # Основная логика выбора сценария
     # Сценарий (a) запускается если:
     # - Передан аргумент команды
-    # - Или парсинг CHANGELOG.md не удался (нет файла, нет [actual])
+    # - Или парсинг CHANGELOG.md не удался (нет файла, нет [Unreleased])
     
     args_message = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else None
     
@@ -180,7 +184,7 @@ if __name__ == '__main__':
     commit_message = ""
     
     if scenario == 'a':
-        print("Scenario (a): Argument or Fallback")
+        print("Commit Message (Arguments):")
         current_ver = get_current_version()
         new_version = increment_version(current_ver)
         save_version(new_version)
@@ -192,7 +196,7 @@ if __name__ == '__main__':
             commit_message += f': {args_message}'
             
     elif scenario == 'b' and changelog_data:
-        print("Scenario (b): Changelog")
+        print("Commit Message (Changelog):")
         version, msg_body, new_changelog_content = changelog_data
         
         # Обновляем VERSION
